@@ -1,5 +1,7 @@
 package com.family.codina;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -9,33 +11,56 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
+import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.content.res.AssetManager;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class ScrollingActivity extends AppCompatActivity {
-
+    private AssetManager assetManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scrolling);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        assetManager = getAssets();
 
         final LinearLayout parent = (LinearLayout) findViewById(R.id.insertBaby);
 
-        fillRows(parent, "Clara Codina Ferreres", "05.08.2018", "12.05.2019");
-        fillRows(parent, "??? Codina Codina", "15.02.2019", "22.11.2019");
+        fillRows(parent, "??? Codina Codina", "15.02.2019", "22.11.2019", false, "codina.png");
+        fillRows(parent, "Clara Codina Ferreres", "05.08.2018", "12.05.2019", false, "clara.png");
+        fillRows(parent, "Lucas Codina Martinez", "10.10.2018", "10.10.2018", true, "lucas.png");
+        fillRows(parent, "Mateo Marin Codina", "28.08.2018", "28.08.2018", true, "mateo.png");
+        fillRows(parent, "Marta Marin Codina", "25.09.2017", "25.09.2017", true, "marta.png");
 
     }
 
-    public void fillRows(LinearLayout parent, String nombre, String date_ini, String date_fin){
+    public void fillRows(LinearLayout parent, String nombre, String date_ini, String date_fin, Boolean born, String foto_perfil){
         View newrow = LayoutInflater.from(this).inflate(R.layout.baby, parent, false);
+
+
+        if (foto_perfil != "") {
+            try{
+                InputStream is = assetManager.open(foto_perfil);
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                ImageView imageView = (ImageView) newrow.findViewById(R.id.imageBebe);
+                imageView.setImageBitmap(bitmap);
+                imageView.setScaleType(ScaleType.FIT_XY);
+            }catch(IOException e){};
+
+        }
+
+
         TextView labelViewName = (TextView) newrow.findViewById(R.id.labelName);
         TextView textViewName = (TextView) newrow.findViewById(R.id.textNombre);
         TextView labelViewDate = (TextView) newrow.findViewById(R.id.labelDate);
@@ -51,7 +76,12 @@ public class ScrollingActivity extends AppCompatActivity {
         labelViewDate.setTypeface(null, Typeface.BOLD);
         labelProgress.setTypeface(null, Typeface.BOLD);
 
-        ProgressBarAnimation anim = new ProgressBarAnimation(progress, textProgressNum, date_ini, date_fin);
+        if (born){
+            labelViewDate.setText("Fecha de nacimiento:");
+            labelProgress.setText("Edad:");
+        }
+
+        ProgressBarAnimation anim = new ProgressBarAnimation(progress, textProgressNum, date_ini, date_fin, born);
         anim.setDuration(3000);
         progress.startAnimation(anim);
         parent.addView(newrow);
@@ -71,18 +101,21 @@ public class ScrollingActivity extends AppCompatActivity {
         private long current;
         private long weeks;
         private long days;
+        private Boolean born;
+        private String months;
 
-        public ProgressBarAnimation(ProgressBar progressbar, TextView progressText, String con, String bir) {
+        public ProgressBarAnimation(ProgressBar progressbar, TextView progressText, String con, String bir, Boolean born) {
             super();
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.M.yyyy");
             this.progressBar = progressbar;
             this.progressText = progressText;
+            this.born = born;
 
             try {
                 Date date_con = simpleDateFormat.parse(con);
                 Date date_bir = simpleDateFormat.parse(bir);
-                this.con = new GregorianCalendar(); //2016,11,12
-                this.bir = new GregorianCalendar(); //2017,8,17
+                this.con = new GregorianCalendar();
+                this.bir = new GregorianCalendar();
                 this.con.setTime(date_con);
                 this.bir.setTime(date_bir);
             }catch(Throwable t){};
@@ -90,23 +123,68 @@ public class ScrollingActivity extends AppCompatActivity {
             this.conception = this.con.getTime();
             this.birth = this.bir.getTime();
 
-            //private long total = dateDif(conception, birth);
-            this.current = dateDif(conception, today);
+            if (!this.born){
+                this.current = dateDif(conception, today);
 
-            this.weeks = current/7;
-            this.days = current%7;
+                this.weeks = current/7;
+                this.days = current%7;
 
-            this.from = 0;
-            this.to = (this.current*100/280);
-            if (this.to > 100) this.to = 100;
-            //this.progressText.setText(weeks+"."+days);
+                this.from = 0;
+                this.to = (this.current*100/280);
+                if (this.to > 100) this.to = 100;
+            } else {
+                Calendar today = new GregorianCalendar();
+                today.setTime(new Date());
+                int yearsInBetween = today.get(Calendar.YEAR) - this.bir.get(Calendar.YEAR);
+                int monthsDiff = today.get(Calendar.MONTH) - this.bir.get(Calendar.MONTH);
+
+                this.from = 0;
+                int save_birth_year = this.bir.get(Calendar.YEAR);
+                this.bir.set(Calendar.YEAR, today.get(Calendar.YEAR));
+
+                if (today.compareTo(this.bir) == 0){
+                    this.to = 100;
+                } else if (today.compareTo(this.bir) < 0){
+                    this.bir.set(Calendar.YEAR, today.get(Calendar.YEAR)-1);
+                    long dias = dateDif(this.bir.getTime(), today.getTime());
+                    this.to = (dias*100/today.getActualMaximum(Calendar.DAY_OF_YEAR));
+
+                    yearsInBetween = Math.abs(save_birth_year - this.bir.get(Calendar.YEAR));
+
+                    if (today.get(Calendar.MONTH) == this.bir.get(Calendar.MONTH)){
+                        if (today.get(Calendar.DAY_OF_WEEK_IN_MONTH) < this.bir.get(Calendar.DAY_OF_WEEK_IN_MONTH)){
+                            monthsDiff -= 1;
+                        }
+                    }else{
+                        monthsDiff -= 1;
+                    }
+                } else {
+                    long dias = dateDif(this.bir.getTime(), today.getTime());
+                    this.to = (dias*100/today.getActualMaximum(Calendar.DAY_OF_YEAR));
+                }
+
+                if (yearsInBetween < 2){
+                    yearsInBetween ++;
+                    int ageInMonths = (yearsInBetween*12 + monthsDiff);
+                    this.months = Integer.toString(ageInMonths)+" meses";
+                }else{
+                    this.months = Integer.toString(yearsInBetween)+" años";
+                }
+            }
+
+
         }
 
         @Override
         protected void applyTransformation(float interpolatedTime, Transformation t) {
             super.applyTransformation(interpolatedTime, t);
             float value = from + (to - from) * interpolatedTime;
-            this.progressText.setText(weeks+"."+days+" ("+Integer.toString(Math.round(value))+"%)");
+            if (!this.born){
+                this.progressText.setText(weeks+"."+days+" ("+Integer.toString(Math.round(value))+"%)");
+            } else {
+                this.progressText.setText(months+" ("+Integer.toString(Math.round(value))+"%)");
+            }
+
             if (value < 30) {
                 this.progressBar.getProgressDrawable().setColorFilter(
                         Color.rgb(204,0,0), android.graphics.PorterDuff.Mode.SRC_IN);
@@ -139,5 +217,10 @@ public class ScrollingActivity extends AppCompatActivity {
 
         return elapsedDays;
 
+    }
+
+    public int getImage(String imageName) {
+        int drawableResourceId = this.getResources().getIdentifier(imageName, "drawable", this.getPackageName());
+        return drawableResourceId;
     }
 }
