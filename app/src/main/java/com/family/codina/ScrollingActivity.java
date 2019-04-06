@@ -36,9 +36,10 @@ public class ScrollingActivity extends AppCompatActivity {
         assetManager = getAssets();
 
         final LinearLayout parent = (LinearLayout) findViewById(R.id.insertBaby);
-
+        
+        fillRows(parent, "??? Marin Codina", "06.03.2019", "11.12.2019", false, "");
         fillRows(parent, "??? Codina Codina", "15.02.2019", "22.11.2019", false, "codina.png");
-        fillRows(parent, "Clara Codina Ferreres", "05.08.2018", "12.05.2019", false, "clara.png");
+        fillRows(parent, "Clara Codina Ferreres", "03.08.2018", "12.05.2019", false, "clara.png");
         fillRows(parent, "Lucas Codina Martinez", "10.10.2018", "10.10.2018", true, "lucas.png");
         fillRows(parent, "Mateo Marin Codina", "28.08.2018", "28.08.2018", true, "mateo.png");
         fillRows(parent, "Marta Marin Codina", "25.09.2017", "25.09.2017", true, "marta.png");
