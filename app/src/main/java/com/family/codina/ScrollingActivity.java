@@ -1,64 +1,100 @@
 package com.family.codina;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
-import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.content.res.AssetManager;
 
-import java.io.IOException;
-import java.io.InputStream;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class ScrollingActivity extends AppCompatActivity {
-    private AssetManager assetManager;
+
+    public static class Bebe {
+        public String nombre;
+        public String date_ini;
+        public String date_fin;
+        public String foto_perfil;
+        public Boolean born;
+
+        public Bebe(){
+
+        };
+
+        public Bebe(String nombre, String date_ini, String date_fin, String foto_perfil, Boolean born) {
+            this.nombre = nombre;
+            this.date_ini = date_ini;
+            this.date_fin = date_fin;
+            this.foto_perfil = foto_perfil;
+            this.born = born;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scrolling);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        assetManager = getAssets();
 
         final LinearLayout parent = (LinearLayout) findViewById(R.id.insertBaby);
-        
+
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference ref = database.child("bebes");
+
+        Query bebeQuery = ref.orderByChild("orden");
+        bebeQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren()){
+                    Bebe bebe = singleSnapshot.getValue(Bebe.class);
+                    fillRows(parent, bebe.nombre, bebe.date_ini, bebe.date_fin, bebe.born, bebe.foto_perfil);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("BEBE", "onCancelled", databaseError.toException());
+            }
+        });
+
+
+        /*
         fillRows(parent, "??? Marin Codina", "06.03.2019", "11.12.2019", false, "");
         fillRows(parent, "??? Codina Codina", "15.02.2019", "22.11.2019", false, "codina.png");
         fillRows(parent, "Clara Codina Ferreres", "03.08.2018", "12.05.2019", false, "clara.png");
         fillRows(parent, "Lucas Codina Martinez", "10.10.2018", "10.10.2018", true, "lucas.png");
         fillRows(parent, "Mateo Marin Codina", "28.08.2018", "28.08.2018", true, "mateo.png");
-        fillRows(parent, "Marta Marin Codina", "25.09.2017", "25.09.2017", true, "marta.png");
+        fillRows(parent, "Marta Marin Codina", "25.09.2017", "25.09.2017", true, "marta.png");*/
 
     }
+
 
     public void fillRows(LinearLayout parent, String nombre, String date_ini, String date_fin, Boolean born, String foto_perfil){
         View newrow = LayoutInflater.from(this).inflate(R.layout.baby, parent, false);
 
-
         if (foto_perfil != "") {
-            try{
-                InputStream is = assetManager.open(foto_perfil);
-                Bitmap bitmap = BitmapFactory.decodeStream(is);
-                ImageView imageView = (ImageView) newrow.findViewById(R.id.imageBebe);
-                imageView.setImageBitmap(bitmap);
-                imageView.setScaleType(ScaleType.FIT_XY);
-            }catch(IOException e){};
-
+            ImageView imageView = (ImageView) newrow.findViewById(R.id.imageBebe);
+            Picasso.get().load(foto_perfil).into(imageView);
         }
 
 
