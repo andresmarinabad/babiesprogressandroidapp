@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "151739790871",
+    "firebase_url": "https://babies-progress.firebaseio.com",
+    "project_id": "babies-progress",
+    "storage_bucket": "babies-progress.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151739790871:android:5a7c3d4e5f40e022",
+        "android_client_info": {
+          "package_name": "com.family.codina"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSGCIHGM9yat_KVaDSYCow9p95JWteExk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "151739790871-5k20iv48avsp7jcttp9jf209mn0blbue.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
