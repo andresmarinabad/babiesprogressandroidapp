@@ -200,7 +200,9 @@ public class ScrollingActivity extends AppCompatActivity {
                     this.to = (dias*100/today.getActualMaximum(Calendar.DAY_OF_YEAR));
                 }
 
-                if (yearsInBetween < 2){
+                if (yearsInBetween == 0){
+                    this.months = Integer.toString(monthsDiff)+" meses";
+                }else if (yearsInBetween == 1){
                     yearsInBetween ++;
                     int ageInMonths = (yearsInBetween*12 + monthsDiff);
                     this.months = Integer.toString(ageInMonths)+" meses";
