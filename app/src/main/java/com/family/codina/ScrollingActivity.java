@@ -92,7 +92,7 @@ public class ScrollingActivity extends AppCompatActivity {
     public void fillRows(LinearLayout parent, String nombre, String date_ini, String date_fin, Boolean born, String foto_perfil){
         View newrow = LayoutInflater.from(this).inflate(R.layout.baby, parent, false);
 
-        if (foto_perfil.isEmpty()) {
+        if (!foto_perfil.isEmpty()) {
             ImageView imageView = (ImageView) newrow.findViewById(R.id.imageBebe);
             Picasso.get().load(foto_perfil).into(imageView);
         }
