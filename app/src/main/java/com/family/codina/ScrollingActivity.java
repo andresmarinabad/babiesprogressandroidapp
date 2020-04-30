@@ -92,7 +92,7 @@ public class ScrollingActivity extends AppCompatActivity {
     public void fillRows(LinearLayout parent, String nombre, String date_ini, String date_fin, Boolean born, String foto_perfil){
         View newrow = LayoutInflater.from(this).inflate(R.layout.baby, parent, false);
 
-        if (foto_perfil != "") {
+        if (!foto_perfil.isEmpty()) {
             ImageView imageView = (ImageView) newrow.findViewById(R.id.imageBebe);
             Picasso.get().load(foto_perfil).into(imageView);
         }
@@ -143,7 +143,7 @@ public class ScrollingActivity extends AppCompatActivity {
 
         public ProgressBarAnimation(ProgressBar progressbar, TextView progressText, String con, String bir, Boolean born) {
             super();
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd.M.yyyy");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/mm/yyyy");
             this.progressBar = progressbar;
             this.progressText = progressText;
             this.born = born;
@@ -155,7 +155,9 @@ public class ScrollingActivity extends AppCompatActivity {
                 this.bir = new GregorianCalendar();
                 this.con.setTime(date_con);
                 this.bir.setTime(date_bir);
-            }catch(Throwable t){};
+            }catch(Throwable t){
+                Log.e("Parsing Date Error:", t.getMessage());
+            };
 
             this.conception = this.con.getTime();
             this.birth = this.bir.getTime();
