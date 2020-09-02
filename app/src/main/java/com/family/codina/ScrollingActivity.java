@@ -1,11 +1,18 @@
 package com.family.codina;
 
+import android.Manifest;
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
@@ -23,12 +30,18 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.regex.Pattern;
 
 public class ScrollingActivity extends AppCompatActivity {
+
+    public static final int PERMS_REQUEST_CODE = 1;
+    public static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
 
     public static class Bebe {
         public String nombre;
@@ -56,6 +69,24 @@ public class ScrollingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scrolling);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        if (ContextCompat.checkSelfPermission(ScrollingActivity.this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(ScrollingActivity.this, Manifest.permission.GET_ACCOUNTS)) {
+                ActivityCompat.requestPermissions(ScrollingActivity.this, new String[]{Manifest.permission.GET_ACCOUNTS}, PERMS_REQUEST_CODE);
+            } else {
+                ActivityCompat.requestPermissions(ScrollingActivity.this, new String[]{Manifest.permission.GET_ACCOUNTS}, PERMS_REQUEST_CODE);
+            }
+
+        }
+
+        if (ContextCompat.checkSelfPermission(ScrollingActivity.this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(ScrollingActivity.this, Manifest.permission.READ_CONTACTS)) {
+                ActivityCompat.requestPermissions(ScrollingActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+            } else {
+                ActivityCompat.requestPermissions(ScrollingActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+            }
+
+        }
 
         final LinearLayout parent = (LinearLayout) findViewById(R.id.insertBaby);
 
@@ -86,8 +117,10 @@ public class ScrollingActivity extends AppCompatActivity {
         fillRows(parent, "Mateo Marin Codina", "28.08.2018", "28.08.2018", true, "mateo.png");
         fillRows(parent, "Marta Marin Codina", "25.09.2017", "25.09.2017", true, "marta.png");*/
 
+        if (this.checkSuperUser()) {
+            //TODO: load admin menu layout to CRUD items in firebase
+        }
     }
-
 
     public void fillRows(LinearLayout parent, String nombre, String date_ini, String date_fin, Boolean born, String foto_perfil){
         View newrow = LayoutInflater.from(this).inflate(R.layout.baby, parent, false);
@@ -263,5 +296,37 @@ public class ScrollingActivity extends AppCompatActivity {
     public int getImage(String imageName) {
         int drawableResourceId = this.getResources().getIdentifier(imageName, "drawable", this.getPackageName());
         return drawableResourceId;
+    }
+
+    public boolean checkSuperUser() {
+        AccountManager manager = (AccountManager) getSystemService(ACCOUNT_SERVICE);
+        Account[] list = manager.getAccounts();
+        String gmail = null;
+        for(Account account: list) {
+            if(account.type.equalsIgnoreCase("com.google")) {
+                gmail = account.name;
+                String gmd5 = this.md5(gmail);
+                if (gmd5.equals("62e1ea3440f6b3b541fba3161b1e7a64")) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public String md5(String s) {
+        try {
+            MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
+            digest.update(s.getBytes());
+            byte messageDigest[] = digest.digest();
+            StringBuffer hexString = new StringBuffer();
+            for (int i=0; i<messageDigest.length; i++)
+                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
+            return hexString.toString();
+        }catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }
